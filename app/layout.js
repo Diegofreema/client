@@ -1,5 +1,6 @@
 'use client';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import TopNav from '@/components/TopNav';
 import './globals.css';
 import { Inter } from 'next/font/google';
@@ -17,6 +18,7 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         {<TopNav />}
         {children}
+        {<ToastContainer position="top-center" />}
       </body>
     </html>
   );

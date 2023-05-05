@@ -1,5 +1,9 @@
 'use client';
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import { SyncOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
 
 const register = () => {
   const [name, setName] = useState('');
@@ -7,8 +11,18 @@ const register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [disabled, setDisabled] = useState(true);
+  const router = useRouter();
+  useEffect(() => {
+    if (!name || !email || !password || !confirmPassword) {
+      setDisabled(true);
+    } else {
+      setDisabled(false);
+    }
+  }, [name, email, password, confirmPassword]);
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
     if (
       name === '' ||
@@ -16,16 +30,35 @@ const register = () => {
       password === '' ||
       confirmPassword === ''
     ) {
-      return console.log('No field must be empty');
+      return toast('No field must be empty');
     }
     if (password.trim().length < 6) {
-      return console.log('password must be at least 6 characters');
+      return toast('Password must be at least 6 characters');
     }
 
     if (password !== confirmPassword) {
-      return console.log('password does not match confirm password');
+      return toast('password does not match confirm password');
     }
-    console.table(name, email, password, confirmPassword);
+    setLoading(true);
+    try {
+      const { data } = await axios.post(`/api/register`, {
+        name,
+        email,
+        password,
+      });
+      toast('Registration succesfull, Please login');
+
+      setConfirmPassword('');
+      setEmail('');
+      setPassword('');
+      setName('');
+      console.log(data);
+      setLoading(false);
+      router.push('/login');
+    } catch (error) {
+      toast(error?.response?.data);
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,41 +66,48 @@ const register = () => {
       <h1 className="text-5xl text-center h-52 bg-gradient-to-r from-blue-700 to-black flex items-center justify-center text-white ">
         Register
       </h1>
-      <div>
+      <div className="flex ">
         <form
           onSubmit={submitHandler}
-          className="grid place-content-center mt-5"
+          className="flex flex-col mx-auto justify-center items-center  w-full mt-5"
         >
           <input
             type="text"
-            className="p-4 py-2  bg-slate-100 shadow-lg mb-3 outline-none"
+            className="p-4 py-2  bg-slate-100 shadow-lg mb-3 outline-none w-[80%] md:w-[50%]"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            placeholder="Name"
           />
           <input
             value={email}
             type="email"
-            className="p-4 py-2  bg-slate-100 shadow-lg mb-3 outline-none"
+            className="p-4 py-2  bg-slate-100 shadow-lg mb-3 outline-none w-[80%] md:w-[50%]"
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
           />
           <input
             value={password}
             type="password"
-            className="p-4  py-2 bg-slate-100 shadow-lg mb-3 outline-none"
+            className="p-4  py-2 bg-slate-100 shadow-lg mb-3 outline-none w-[80%] md:w-[50%]"
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
           />
           <input
             value={confirmPassword}
             type="password"
-            className="p-4  py-2 bg-slate-100 shadow-lg mb-3 outline-none"
+            className="p-4  py-2 bg-slate-100 shadow-lg mb-3 outline-none w-[80%] md:w-[50%]"
             onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm Password"
           />
           <div className="text-center">
             <button
               type="submit"
-              className="border-none bg-gradient-to-tr py-3 px-2 text-white w-[150px] from-blue-700 to-black"
+              className={` ${
+                disabled ? 'opacity-50' : ''
+              }   border-none  bg-gradient-to-tr py-3 px-2 text-white w-[150px] from-blue-700 to-black`}
+              disabled={disabled}
             >
-              Register
+              {loading ? <SyncOutlined spin /> : 'Register'}
             </button>
           </div>
         </form>
